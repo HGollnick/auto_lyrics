@@ -46,3 +46,6 @@ coverage.xml
 
 # VS Code
 .vscode/
+
+# Outputs
+.mp4
