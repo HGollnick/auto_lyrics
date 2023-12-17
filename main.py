@@ -4,8 +4,8 @@ import whisper_interpreter
 
 def main():
     # whisper_interpreter.main()
-    write_video.main()
-    write_audio.main()
+    write_video.generate()
+    write_audio.generate()
 
 if __name__ == "__main__":
     main()

@@ -22,11 +22,11 @@ def create_image_with_text(text, image_size=(1080, 1920, 3), font=cv2.FONT_HERSH
     
     return image
 
-def create_video_from_image(video, image, duration, output_file='output.mp4', codec='mp4v', fps=30.0):
+def create_video_from_image(video, image, duration, output_file, fileFormat=".mp4", codec='mp4v', fps=30.0):
     if video is None:
         # Create a VideoWriter objects
         fourcc = cv2.VideoWriter_fourcc(*codec)
-        video = cv2.VideoWriter(output_file, fourcc, fps, (image.shape[1], image.shape[0]))
+        video = cv2.VideoWriter(output_file + fileFormat, fourcc, fps, (image.shape[1], image.shape[0]))
 
     # Write the image into the video file for a certain duration
     for _ in range(int(fps * duration)):
@@ -65,24 +65,27 @@ def calculate_duration(start, end):
     # Calculate the difference
     return end_time - start_time
 
-def main():
+def generate():
     video = None
-    results = read_files.get_files()
-    for i, result in enumerate(results):
-        text = result.get("text")
-        start = result.get("start")
-        end = result.get("end")
-        
-        # Wait for instrumental part to end
-        if i == 0:
-            video = create_video_from_image(video, create_image_with_text(result.get("")), start.seconds)
-        elif results[i - 1].get("end") < start:
-            video = create_video_from_image(video, create_image_with_text(result.get("")), calculate_duration(results[i - 1].get("end"), start).seconds)
+    files = read_files.get_files()
+    for file in files:
+        results = read_files.get_file_content(file)
+        if len(results) > 0:  # Check if results is empty
+            for i, result in enumerate(results):
+                file_name = file.get("name").split(".")[0]
+                text = result.get("text")
+                start = result.get("start")
+                end = result.get("end")
+                
+                # Wait for instrumental part to end
+                if i == 0:
+                    video = create_video_from_image(video, create_image_with_text(result.get("")), start.seconds, file_name)
+                elif results[i - 1].get("end") < start:
+                    video = create_video_from_image(video, create_image_with_text(result.get("")), calculate_duration(results[i - 1].get("end"), start).seconds, file_name)
 
-        image = create_image_with_text(text) 
-        video = create_video_from_image(video, image, calculate_duration(start, end).seconds)
-
-    release_video(video)
+                image = create_image_with_text(text) 
+                video = create_video_from_image(video, image, calculate_duration(start, end).seconds, file_name)
+            release_video(video)
 
 if __name__ == "__main__":
     main()
