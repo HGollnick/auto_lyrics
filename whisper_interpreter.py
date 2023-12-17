@@ -4,7 +4,7 @@ from whisper.utils import get_writer
 
 def load_model_and_transcribe(model_name, audio_file, task):
     model = whisper.load_model(model_name)
-    result = model.transcribe(audio_file, task=task, word_timestamps=True)
+    result = model.transcribe(audio_file, task=task, word_timestamps=False)
     return result
 
 def write_transcription(result, output_file, word_options):

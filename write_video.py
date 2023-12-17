@@ -22,32 +22,25 @@ def create_image_with_text(text, image_size=(1080, 1920, 3), font=cv2.FONT_HERSH
     
     return image
 
-def create_video_from_image(video, image, duration, output_file, fileFormat=".mp4", codec='mp4v', fps=30.0):
-    if video is None:
-        # Create a VideoWriter objects
-        fourcc = cv2.VideoWriter_fourcc(*codec)
-        video = cv2.VideoWriter(output_file + fileFormat, fourcc, fps, (image.shape[1], image.shape[0]))
-
-    # Write the image into the video file for a certain duration
-    for _ in range(int(fps * duration)):
-        video.write(image)
-    return video
-
 # TODO Test miliseconds implementation
-# def create_video_from_image(video, image, duration_in_ms, output_file='output.mp4', codec='mp4v', fps=30.0):
-#     if video is None:
-#         # Create a VideoWriter objects
-#         fourcc = cv2.VideoWriter_fourcc(*codec)
-#         video = cv2.VideoWriter(output_file, fourcc, fps, (image.shape[1], image.shape[0]))
+def create_video_from_image(video, image, duration, output_file, fileFormat=".mp4", codec='mp4v', fps=30.0):
+        if video is None:
+            # Create a VideoWriter objects
+            fourcc = cv2.VideoWriter_fourcc(*codec)
+            video = cv2.VideoWriter(output_file + fileFormat, fourcc, fps, (image.shape[1], image.shape[0]))
 
-#     # Calculate the number of frames to write based on the duration in milliseconds
-#     duration_in_sec = duration_in_ms / 1000.0
-#     num_frames = int(fps * duration_in_sec)
+        # Write the image into the video file for a certain duration
+        num_frames = int(fps * duration.seconds)
+        for _ in range(num_frames):
+            video.write(image)
 
-#     # Write the image into the video file for the calculated number of frames
-#     for _ in range(num_frames):
-#         video.write(image)
-#     return video
+        # Write the remaining fraction of the last frame
+        if duration.microseconds > 0:
+            milliseconds = duration.microseconds / 1000
+            remaining_frames = round((milliseconds * fps) / 1000)
+            for _ in range(remaining_frames):
+                video.write(image)
+        return video
         
 def release_video(video):        
     # Release the VideoWriter
@@ -76,16 +69,14 @@ def generate():
                 text = result.get("text")
                 start = result.get("start")
                 end = result.get("end")
+                print("Text: " + text + " || Start: " + str(start) + " || End: " + str(end))
                 
                 # Wait for instrumental part to end
-                if i == 0:
-                    video = create_video_from_image(video, create_image_with_text(result.get("")), start.seconds, file_name)
-                elif results[i - 1].get("end") < start:
-                    video = create_video_from_image(video, create_image_with_text(result.get("")), calculate_duration(results[i - 1].get("end"), start).seconds, file_name)
-
+                if results[i - 1].get("end") < start:
+                    video = create_video_from_image(video, create_image_with_text(result.get("")), calculate_duration(results[i - 1].get("end"), start), file_name)
                 image = create_image_with_text(text) 
-                video = create_video_from_image(video, image, calculate_duration(start, end).seconds, file_name)
+                video = create_video_from_image(video, image, calculate_duration(start, end), file_name)
             release_video(video)
 
 if __name__ == "__main__":
-    main()
+    generate()

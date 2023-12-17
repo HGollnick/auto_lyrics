@@ -3,7 +3,7 @@ import write_audio
 import whisper_interpreter
 
 def main():
-    # whisper_interpreter.main()
+    whisper_interpreter.generate()
     write_video.generate()
     write_audio.generate()
 
